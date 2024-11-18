@@ -38,16 +38,20 @@ ColorOptions:
     .word 0xff0000  # Red
     .word 0x00ff00  # Green
     .word 0x0000ff  # Blue
+Background:
+    .word 0x000000  # Black
 
 ##############################################################################
 # Mutable Data
 ##############################################################################
-CapsuleX:
-    .word 8        # Initial X position of the capsule
-CapsuleY:
-    .word 128      # Initial Y position of the capsule
-CapsuleOrientation:
-    .word 0        # Initial orientation: 0 for vertical, 1 for horizontal
+topPixelColor:
+    .word 0xff0000
+bottomPixelColor:
+    .word 0x00ff00
+capsuleTop:
+    .word 0x10008000
+capsuleBottom:
+    .word 0x10008000
 ##############################################################################
 # Code
 ##############################################################################
@@ -131,6 +135,11 @@ first_capsule:
 
     # Draw the first part of the capsule using the first random color
     sw $t9, 8($t6)
+    sw $t9, topPixelColor
+    lw $t9, 8($t6)
+    sw $t9, capsuleTop
+    
+    
 
     # Generate random color for the second part of the capsule
     li $v0, 42                # Syscall for another random number generation
@@ -146,12 +155,16 @@ first_capsule:
 
     # Draw the second part of the capsule using the second random color
     sw $t9, -120($t6)
+    sw $t9, bottomPixelColor
+    lw $t9, -120($t6)
+    sw $t9, capsuleTop
+    
 
 # Main game loop placeholder
 game_loop:
     # Add a short delay for better handling of keyboard polling
     li $v0, 32                    # Syscall for sleep
-    li $a0, 1                     # Sleep for 1 ms
+    li $a0, 10                    # Sleep for 1 ms
     syscall
     
     lw $t0, ADDR_KBRD             # $t0 = base address for keyboard
@@ -183,47 +196,72 @@ game_loop:
     j game_loop               # Continue looping if no valid key is pressed
     
 rotate_capsule:
-    # Load current orientation
-    lw $t6, CapsuleOrientation
-    xori $t6, $t6, 1          # Toggle between 0 (vertical) and 1 (horizontal)
-    sw $t6, CapsuleOrientation
+  
+    j game_loop
 
-    # Adjust the capsule's coordinates based on new orientation
-    # If rotating from vertical to horizontal
-    beqz $t6, rotate_horizontal
+rotate_vertical:
     
-    # Rotating from horizontal to vertical
-    lw $t4, CapsuleX
-    addi $t4, $t4, -4         # Adjust X to shift left
-    sw $t4, CapsuleX          # Update X position
-    j game_loop
-
-rotate_horizontal:
-    lw $t5, CapsuleY
-    addi $t5, $t5, -128       # Adjust Y to shift up
-    sw $t5, CapsuleY          # Update Y position
-    j game_loop
+ 
 
 move_left:
-    # Load current X position
-    lw $t4, CapsuleX
-    addi $t4, $t4, -4         # Move left by one unit
-    sw $t4, CapsuleX          # Update X position
-    j game_loop
+    # Load the colors of the capsule
+    lw $t9, topPixelColor     # Load the color of the top part of the capsule
+    lw $t8, bottomPixelColor  # Load the color of the bottom part of the capsule
+    lw $t7, Background        # Load the color of the background
+    
+    sw $t7, 8($t6)
+    sw $t7, -120($t6) 
+    
+    # Calculate the new position by adding the offset
+    addi $t6, $t6, -4        
+
+    # Store the colors at the new position to move the capsule
+    sw $t9, 8($t6)            # Store top part of the capsule at new position
+    sw $t8, -120($t6)         # Store bottom part of the capsule at new position
+
+    # Update the display
+    j game_loop               # Return to the game loop
 
 move_right:
-    # Load current X position
-    lw $t4, CapsuleX
-    addi $t4, $t4, 4          # Move right by one unit
-    sw $t4, CapsuleX          # Update X position
-    j game_loop
+        # Load the colors of the capsule
+    lw $t9, topPixelColor     # Load the color of the top part of the capsule
+    lw $t8, bottomPixelColor  # Load the color of the bottom part of the capsule
+    lw $t7, Background        # Load the color of the background
+    
+    sw $t7, 8($t6)
+    sw $t7, -120($t6) 
+    
+    # Calculate the new position by adding the offset
+    addi $t6, $t6, 4     
 
+    # Store the colors at the new position to move the capsule
+    sw $t9, 8($t6)            # Store top part of the capsule at new position
+    sw $t8, -120($t6)         # Store bottom part of the capsule at new position
+
+    # Update the display
+    j game_loop               # Return to the game loop
+   
+   
 move_down:
-    # Load current Y position
-    lw $t5, CapsuleY
-    addi $t5, $t5, 128        # Move down by one row (based on pixel size)
-    sw $t5, CapsuleY          # Update Y position
-    j game_loop
+    # Load the colors of the capsule
+    lw $t9, topPixelColor     # Load the color of the top part of the capsule
+    lw $t8, bottomPixelColor  # Load the color of the bottom part of the capsule
+    lw $t7, Background        # Load the color of the background
+    
+    sw $t7, 8($t6)
+    sw $t7, -120($t6) 
+    
+    # Calculate the new position by adding the row offset
+    addi $t6, $t6, 128        # Move down one row (128 is the row offset)
+
+    # Store the colors at the new position to move the capsule
+    sw $t9, 8($t6)            # Store top part of the capsule at new position
+    sw $t8, -120($t6)         # Store bottom part of the capsule at new position
+
+    # Update the display
+    j game_loop               # Return to the game loop
+           
+    
 
 quit_game:
     li $v0, 10                # Syscall to terminate the program
