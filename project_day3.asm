@@ -536,6 +536,16 @@ move_down_vertical:
            
 change_capsule:
 beq $s4, $s3, quit_game    # checks to see if the capsule is in same position as where the capsules spawn.
+addi, $s3, $s3, 4
+beq $s4, $s3, quit_game     # All these statements check if there is any overflow at the top of the bottle.
+addi, $s3, $s3, 4
+beq $s4, $s3, quit_game
+addi, $s3, $s3, -12
+beq $s4, $s3, quit_game
+addi, $s3, $s3, -4
+beq $s4, $s3, quit_game
+
+
 move $s3, $s4               # ***
 li $t4, -1
 
