@@ -153,7 +153,7 @@ next_capsule:
     
 
     # sw $t9, topPixelColor
-    sw $t9, 68($s3)     # Save location of top part of next capsule
+    sw $t9, 68($s3)     # Save location of bottom part of next capsule
     
 
     # Generate random color for the second part of the capsule
@@ -168,7 +168,9 @@ next_capsule:
     add $t8, $t8, $a0         # Get address of the selected color
     lw $t9, 0($t8)            # Load the selected color into $t9
 
-    sw $t9, -60($s3)    # Save location of bottom part of next capsule
+    sw $t9, -60($s3)    # Save location of top  part of next capsule
+    
+    bltz $t4, repaint
     
     
 first_capsule:
@@ -254,6 +256,8 @@ beq $t4, $zero, repaint
     sw $t9, 0($s4)
     
     subi $t4, $t4, 1
+    
+    move $s4, $s3               # copy of origin that will be the same when it leaves the virus branch. will be used in game loop ***
     j virus
 
     
@@ -489,8 +493,9 @@ move_down_horizontal:
     lw $t2, 140($s3)           # Load color below of original postition of right pixel
 
     
-    bne $t1, $t7, quit_game
-    bne $t2, $t7, quit_game
+    bne $t1, $t7, change_capsule     # made it branch to quit for now cause we need to implement the a way to add new_capsule. Likely we will need to add a new
+    bne $t2, $t7, change_capsule    # branch that takes this situation
+    
     
     sw $t7, 8($s3) 
     sw $t7, 12($s3) 
@@ -513,7 +518,7 @@ move_down_vertical:
     
     lw $t1, 136($s3)          # Load color below original postition of bottom pixel
     
-    bne $t1, $t7, quit_game   # made it branch to quit for now cause we need to implement the a way to add new_capsule. Likely we will need to add a new
+    bne $t1, $t7, change_capsule # made it branch to quit for now cause we need to implement the a way to add new_capsule. Likely we will need to add a new
                               # branch that takes this situation
 
     
@@ -530,7 +535,18 @@ move_down_vertical:
     # Update the display
     j repaint               # Re-paint the screen
            
-    
+change_capsule:
+move $s3, $s4               # ***
+li $t4, -1
+
+lw $t9, 68($s3)     # load color bottom of next_capsule
+lw $t8, -60($s3)     # load color top of next_capsule
+
+sw $t9, 8($s3)     # load color bottom of next_capsule to original position
+sw $t8, -120($s3)     # load color top of next_capsule to original position
+
+li $t5, 0
+j next_capsule
 
 quit_game:
     li $v0, 10                # Syscall to terminate the program
