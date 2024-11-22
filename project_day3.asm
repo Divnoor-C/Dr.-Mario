@@ -203,7 +203,9 @@ first_capsule:
     sw $t9, -120($s3)
 
 lw $t4, VirusNumber # counter for virus
+
 li $t7, 0
+
 move $t6, $s3
 
 
@@ -247,9 +249,9 @@ beq $t4, $zero, repaint
     mult, $t2, $t2, $a0 
     add $t3, $t2, $t3
     
-    move $s3, $t3
+    move $s4, $t3
     
-    sw $t9, 0($s3)
+    sw $t9, 0($s4)
     
     subi $t4, $t4, 1
     j virus
@@ -274,7 +276,7 @@ paint_screen:
 game_loop:
     # Short delay for better handling of keyboard polling
     li $v0, 32                    # Syscall for sleep
-    li $a0, 10                    # Sleep for 1 ms
+    li $a0, 10                    # Sleep for 10 ms
     syscall
     
     lw $t0, ADDR_KBRD             # $t0 = base address for keyboard
@@ -315,9 +317,16 @@ rotate_vertical:
 
 move_left:
     # Load the position of the capsule
-    lw $t9, 8($s3)     # Load the color of the top part of the capsule
-    lw $t8, -120($s3)  # Load the color of the bottom part of the capsule
+    lw $t9, 8($s3)     # Load the color of the bottom part of the capsule
+    lw $t8, -120($s3)  # Load the color of the top part of the capsule
     lw $t7, Background        # Load the color of the background
+    
+    lw $t1, 4($s3)           # Load color left of original postition of bottom pixel
+    lw $t2, -124($s3)          # Load color left of original postition of top pixel
+    
+    bne $t1, $t7, game_loop
+    bne $t2, $t7, game_loop
+    
     
     sw $t7, 8($s3)
     sw $t7, -120($s3) 
@@ -334,9 +343,15 @@ move_left:
 
 move_right:
     # Load the position of the capsule
-    lw $t9, 8($s3)     # Load the color of the top part of the capsule
-    lw $t8, -120($s3)  # Load the color of the bottom part of the capsule
+    lw $t9, 8($s3)     # Load the color of the bottom part of the capsule
+    lw $t8, -120($s3)  # Load the color of the top part of the capsule
     lw $t7, Background        # Load the color of the background
+    
+    lw $t1, 12($s3)           # Load color right of original postition of bottom pixel
+    lw $t2, -116($s3)          # Load color right of original postition of top pixel
+    
+    bne $t1, $t7, game_loop
+    bne $t2, $t7, game_loop
     
     sw $t7, 8($s3)
     sw $t7, -120($s3) 
@@ -354,9 +369,15 @@ move_right:
    
 move_down:
     # Load the position of the capsule
-    lw $t9, 8($s3)     # Load the color of the top part of the capsule
-    lw $t8, -120($s3)  # Load the color of the bottom part of the capsule
+    lw $t9, 8($s3)     # Load the color of the bottom part of the capsule
+    lw $t8, -120($s3)  # Load the color of the top part of the capsule
     lw $t7, Background        # Load the color of the background
+    
+    lw $t1, 136($s3)          # Load color below original postition of bottom pixel
+    
+    bne $t1, $t7, quit_game   # made it branch to quit for now cause we need to implement the a way to add new_capsule. Likely we will need to add a new
+                              # branch that takes this situation
+
     
     sw $t7, 8($s3)
     sw $t7, -120($s3) 
