@@ -493,8 +493,8 @@ move_down_horizontal:
     lw $t2, 140($s3)           # Load color below of original postition of right pixel
 
     
-    bne $t1, $t7, change_capsule     # made it branch to quit for now cause we need to implement the a way to add new_capsule. Likely we will need to add a new
-    bne $t2, $t7, change_capsule    # branch that takes this situation
+    bne $t1, $t7, change_capsule 
+    bne $t2, $t7, change_capsule    
     
     
     sw $t7, 8($s3) 
@@ -518,8 +518,7 @@ move_down_vertical:
     
     lw $t1, 136($s3)          # Load color below original postition of bottom pixel
     
-    bne $t1, $t7, change_capsule # made it branch to quit for now cause we need to implement the a way to add new_capsule. Likely we will need to add a new
-                              # branch that takes this situation
+    bne $t1, $t7, change_capsule 
 
     
     sw $t7, 8($s3)
@@ -536,6 +535,7 @@ move_down_vertical:
     j repaint               # Re-paint the screen
            
 change_capsule:
+beq $s4, $s3, quit_game    # checks to see if the capsule is in same position as where the capsules spawn.
 move $s3, $s4               # ***
 li $t4, -1
 
@@ -545,7 +545,8 @@ lw $t8, -60($s3)     # load color top of next_capsule
 sw $t9, 8($s3)     # load color bottom of next_capsule to original position
 sw $t8, -120($s3)     # load color top of next_capsule to original position
 
-li $t5, 0
+li $t5, 0               # when it renters loop the capsule will be vertical, so t5 needs to be set back to zero if the last capsule stopped
+                        # when it was horizontal.
 j next_capsule
 
 quit_game:
