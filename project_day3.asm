@@ -308,14 +308,93 @@ game_loop:
     j game_loop               # Continue looping if no valid key is pressed
     
 rotate_capsule:
-  
-    j game_loop
 
-rotate_vertical:
-    j game_loop
+beq $zero, $t5, rotate_capsule_vertical
+j rotate_capsule_horizontal
+
+rotate_capsule_horizontal:
+    # Load the position of the capsule
+    lw $t9, 8($s3)     # Load the color of the bottom part of the capsule
+    lw $t8, 12($s3)  # Load the color of the top part of the capsule
+    lw $t7, Background        # Load the color of the background
+    
+    lw $t1, -120($s3)           # Load color right of original postition of bottom pixel
+
+    
+    bne $t1, $t7, game_loop
+
+    sw $t7, 12($s3) 
+    
+
+    # Store the colors at the new position to move the capsule
+
+    sw $t8, 8($s3)         # Store top part of the capsule at new position
+    sw $t9, -120($s3)         # Store top part of the capsule at new position
+
+    addi, $t5, $t5, -1           # update rotate variable
+    
+    # Update the display
+    
+    j repaint               # Re-paint the screen
+
+rotate_capsule_vertical:
+  
+    # Load the position of the capsule
+    lw $t9, 8($s3)     # Load the color of the bottom part of the capsule
+    lw $t8, -120($s3)  # Load the color of the top part of the capsule
+    lw $t7, Background        # Load the color of the background
+    
+    lw $t1, 12($s3)           # Load color right of original postition of bottom pixel
+
+    
+    bne $t1, $t7, game_loop
+
+    sw $t7, -120($s3) 
+    
+
+    # Store the colors at the new position to move the capsule
+
+    sw $t8, 12($s3)         # Store top part of the capsule at new position
+
+    addi, $t5, $t5, 1           # update rotate variable
+    
+    # Update the display
+    
+    j repaint               # Re-paint the screen
+
  
 
 move_left:
+
+beq $zero, $t5, move_left_vertical
+j move_left_horizontal
+
+move_left_horizontal:
+    # Load the position of the capsule
+    lw $t9, 8($s3)     # Load the color of the left part of the capsule
+    lw $t8, 12($s3)  # Load the color of the right part of the capsule
+    lw $t7, Background        # Load the color of the background
+    
+    lw $t1, 4($s3)           # Load color left of original postition of bottom pixel
+
+    
+    bne $t1, $t7, game_loop
+    
+    sw $t7, 12($s3) 
+    
+    # Calculate the new position by adding the row offset
+    addi $s3, $s3, -4        # Move down one row (128 is the row offset)
+
+    # Store the colors at the new position to move the capsule
+    sw $t9, 8($s3)            # Store top part of the capsule at new position
+    sw $t8, 12($s3)         # Store bottom part of the capsule at new position
+
+    # Update the display
+    j repaint               # Re-paint the screen
+
+
+
+move_left_vertical:
     # Load the position of the capsule
     lw $t9, 8($s3)     # Load the color of the bottom part of the capsule
     lw $t8, -120($s3)  # Load the color of the top part of the capsule
@@ -342,6 +421,34 @@ move_left:
     j repaint               # Re-paint the screen
 
 move_right:
+
+beq $zero, $t5, move_right_vertical
+j move_right_horizontal
+
+move_right_horizontal:
+    # Load the position of the capsule
+    lw $t9, 8($s3)     # Load the color of the left part of the capsule
+    lw $t8, 12($s3)  # Load the color of the right part of the capsule
+    lw $t7, Background        # Load the color of the background
+    
+    lw $t1, 16($s3)           # Load color right of original postition of right pixel
+
+    
+    bne $t1, $t7, game_loop
+    
+    sw $t7, 8($s3) 
+    
+    # Calculate the new position by adding the row offset
+    addi $s3, $s3, 4        # Move down one row (128 is the row offset)
+
+    # Store the colors at the new position to move the capsule
+    sw $t9, 8($s3)            # Store top part of the capsule at new position
+    sw $t8, 12($s3)         # Store bottom part of the capsule at new position
+
+    # Update the display
+    j repaint               # Re-paint the screen
+    
+move_right_vertical:
     # Load the position of the capsule
     lw $t9, 8($s3)     # Load the color of the bottom part of the capsule
     lw $t8, -120($s3)  # Load the color of the top part of the capsule
@@ -368,7 +475,38 @@ move_right:
    
    
 move_down:
+
+beq $zero, $t5, move_down_vertical
+j move_down_horizontal
+
+move_down_horizontal:
     # Load the position of the capsule
+    lw $t9, 8($s3)     # Load the color of the left part of the capsule
+    lw $t8, 12($s3)  # Load the color of the right part of the capsule
+    lw $t7, Background        # Load the color of the background
+    
+    lw $t1, 136($s3)           # Load color below of original postition of left pixel
+    lw $t2, 140($s3)           # Load color below of original postition of right pixel
+
+    
+    bne $t1, $t7, quit_game
+    bne $t2, $t7, quit_game
+    
+    sw $t7, 8($s3) 
+    sw $t7, 12($s3) 
+    
+    # Calculate the new position by adding the row offset
+    addi $s3, $s3, 128        # Move down one row (128 is the row offset)
+
+    # Store the colors at the new position to move the capsule
+    sw $t9, 8($s3)            # Store top part of the capsule at new position
+    sw $t8, 12($s3)         # Store bottom part of the capsule at new position
+
+    # Update the display
+    j repaint               # Re-paint the screen
+    
+    
+move_down_vertical:
     lw $t9, 8($s3)     # Load the color of the bottom part of the capsule
     lw $t8, -120($s3)  # Load the color of the top part of the capsule
     lw $t7, Background        # Load the color of the background
