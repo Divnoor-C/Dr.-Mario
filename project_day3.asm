@@ -289,6 +289,10 @@ game_loop:
 
     lw $t2, 4($t0)                # Load the ASCII value of the pressed key
 
+    # Check for 'p' key (pause)
+    li $t3, 0x70              # ASCII value for 'p'
+    beq $t2, $t3, pause
+
     # Check for 'w' key (rotate)
     li $t3, 0x77              # ASCII value for 'w'
     beq $t2, $t3, rotate_capsule
@@ -311,6 +315,86 @@ game_loop:
 
     j game_loop               # Continue looping if no valid key is pressed
     
+
+
+pause:
+
+lw $t8, ADDR_DSPL        # Load base address for display
+addi $t8, $t8, 1008        # Start at 8th line (y-position)
+lw $t2, BorderColor
+
+    draw_pause:
+        sw $t2, 0($t8)
+        sw $t2, 4($t8)
+        sw $t2, 8($t8)
+        sw $t2, 128($t8)
+        sw $t2, 136($t8)
+        sw $t2, 256($t8)
+        sw $t2, 260($t8)
+        sw $t2, 264($t8)
+        sw $t2, 384($t8)
+        
+        addi, $t8, $t8, 640
+        
+        sw $t2, 0($t8)
+        sw $t2, 4($t8)
+        sw $t2, 8($t8)
+        sw $t2, 128($t8)
+        sw $t2, 136($t8)
+        sw $t2, 256($t8)
+        sw $t2, 260($t8)
+        sw $t2, 264($t8)
+        sw $t2, 384($t8)
+        sw $t2, 392($t8)
+        
+        addi, $t8, $t8, 640
+        
+        sw $t2, 0($t8)
+        sw $t2, 8($t8)
+        sw $t2, 128($t8)
+        sw $t2, 132($t8)
+        sw $t2, 136($t8)
+
+        addi, $t8, $t8, 384
+        
+        sw $t2, 0($t8)
+        sw $t2, 4($t8)
+        sw $t2, 8($t8)
+        sw $t2, 128($t8)
+        sw $t2, 256($t8)
+        sw $t2, 260($t8)
+        sw $t2, 264($t8)
+        sw $t2, 392($t8)
+        sw $t2, 520($t8)
+        sw $t2, 516($t8)
+        sw $t2, 512($t8)
+        
+        addi, $t8, $t8, 768
+        sw $t2, 0($t8)
+        sw $t2, 4($t8)
+        sw $t2, 8($t8)
+        sw $t2, 128($t8)
+        sw $t2, 256($t8)
+        sw $t2, 260($t8)
+        sw $t2, 264($t8)
+        sw $t2, 384($t8)
+        sw $t2, 520($t8)
+        sw $t2, 516($t8)
+        sw $t2, 512($t8)
+        
+
+    li $t2, 0
+    lw $t0, ADDR_KBRD             # $t0 = base address for keyboard
+    lw $t8, 0($t0)                # Load first word from keyboard
+    beqz $t8, pause              # If no key pressed, continue polling
+    lw $t2, 4($t0)                # Load the ASCII value of the pressed key
+    li $t3, 0x70                    # ASCII value for 'p'
+    beq $t2, $t3, repaint
+    
+    j pause
+
+
+
 rotate_capsule:
 
 beq $zero, $t5, rotate_capsule_vertical
