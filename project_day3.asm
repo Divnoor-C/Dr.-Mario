@@ -47,8 +47,12 @@ Color_test:
 Background:
     .word 0x000000  # Black
     
-VirusNumber:
-    .word 4
+VirusNumber_Easy:
+    .word 5
+VirusNumber_Medium:
+    .word 10
+VirusNumber_Hard:
+    .word 20
 
 
 ##############################################################################
@@ -71,7 +75,90 @@ field:
 	.globl main
 
 # Main function to initialize and start the game
+
+Difficulty:
+
+lw $t8, ADDR_DSPL        # Load base address for display
+addi $t8, $t8, 648        # Start at 8th line (y-position)
+lw $t2, BorderColor
+
+    draw_start_screen:
+        sw $t2, 0($t8)
+        sw $t2, 128($t8)
+        sw $t2, 256($t8)
+        sw $t2, 384($t8)
+        sw $t2, 512($t8)
+
+        addi, $t8, $t8, 48
+        
+        sw $t2, 0($t8)
+        sw $t2, 4($t8)
+        sw $t2, 8($t8)
+        sw $t2, 136($t8)
+        sw $t2, 264($t8)
+        sw $t2, 260($t8)
+        sw $t2, 256($t8)
+        sw $t2, 384($t8)
+        sw $t2, 512($t8)
+        sw $t2, 516($t8)
+        sw $t2, 520($t8)
+        
+        addi, $t8, $t8, 60
+        
+        sw $t2, 0($t8)
+        sw $t2, -4($t8)
+        sw $t2, -8($t8)
+        sw $t2, 128($t8)
+        
+        addi, $t8, $t8, 256
+        
+        sw $t2, 0($t8)
+        sw $t2, -4($t8)
+        sw $t2, -8($t8)       
+        sw $t2, 128($t8) 
+        
+        addi, $t8, $t8, 256
+        
+        sw $t2, 0($t8)
+        sw $t2, -4($t8)
+        sw $t2, -8($t8)
+
+
+    li $v0, 32                    # Syscall for sleep
+    li $a0, 10                    # Sleep for 10 ms
+    syscall
+    
+    lw $t0, ADDR_KBRD             # $t0 = base address for keyboard
+    lw $t8, 0($t0)                # Load first word from keyboard
+    beqz $t8, Difficulty            # If no key pressed, continue polling
+
+    lw $t2, 4($t0)                # Load the ASCII value of the pressed key
+    
+
+    li $t3, 0x31              # ASCII value for '1'
+    beq $t2, $t3, easy
+    li $t3, 0x32              # ASCII value for '2'
+    beq $t2, $t3, medium
+    li $t3, 0x33              # ASCII value for '3'
+    beq $t2, $t3, hard
+
+easy:
+lw $a3, VirusNumber_Easy
+j main
+medium:
+lw $a3, VirusNumber_Medium
+j main
+hard:
+lw $a3, VirusNumber_Hard
+j main
+
+
 main:
+    
+    li $t3, 0
+    li $t2, 0
+    li $t8, 0
+
     lw $t0, ADDR_DSPL        # Load base address for display
     
     la $s0, field            # Load base address for the array i.e. the game map
@@ -204,7 +291,7 @@ first_capsule:
 
     sw $t9, -120($s3)
 
-lw $t4, VirusNumber # counter for virus
+move $t4, $a3 # counter for virus
 
 li $t7, 0
 
