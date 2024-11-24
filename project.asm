@@ -30,12 +30,16 @@ Width:
     .word 23      # Width of the box
 Height:    
     .word 25      # Height of the box
+Box_Width:     
+    .word 21      # Width of the inner box
+Box_Height:    
+    .word 23      # Height of the inner box
 Height_empty_part:
     .word 11      # Width of the box's hollow part
 Width_empty_part:
     .word 22      # Height of the box' hallow part
 BorderColor:  
-    .word 0xffffff  # Grey border color
+    .word 0xffffff  # white border color
 
 # Array of possible colors for the initial capsule
 ColorOptions:
@@ -49,6 +53,7 @@ Background:
     
 VirusNumber:
     .word 4
+
 
 ##############################################################################
 # Mutable Data
@@ -76,6 +81,9 @@ main:
     la $s0, field            # Load base address for the array i.e. the game map
     
     addi $s0, $s0, 648
+    move $s5, $s0
+    
+    addi $s5, $s5, 132
 
     lw $t1, BorderColor             # Load color
     lw $a0, Width             # Load width of the box
@@ -103,6 +111,7 @@ draw_top_second_before:
     addi $s2, $s2, 20
     sw $t1, -128($s2)
     addi $t7, $zero, 0        # Reset loop counter    
+    
     
 draw_top_second:
     beq $t4, $t7, draw_vertical_before # Check if the second half of top is drawn
@@ -151,7 +160,7 @@ next_capsule:
     
 
     # sw $t9, topPixelColor
-    sw $t9, 68($s3)     # Save location of top part of next capsule
+    sw $t9, 68($s3)     # Save location of bottom part of next capsule
     
 
     # Generate random color for the second part of the capsule
@@ -166,7 +175,9 @@ next_capsule:
     add $t8, $t8, $a0         # Get address of the selected color
     lw $t9, 0($t8)            # Load the selected color into $t9
 
-    sw $t9, -60($s3)    # Save location of bottom part of next capsule
+    sw $t9, -60($s3)    # Save location of top  part of next capsule
+    
+    bltz $t4, repaint
     
     
 first_capsule:
@@ -199,13 +210,70 @@ first_capsule:
     lw $t9, 0($t8)            # Load the selected color into $t9
 
     sw $t9, -120($s3)
+
+lw $t4, VirusNumber # counter for virus
+
+li $t7, 0
+
+move $t6, $s3
+
+
+virus:
+beq $t4, $zero, repaint
+    li $t1, 0
+    li $t2, 4
+    li $t3, 128
+    addi $t1, $t6, 96 # load t1 with top left bottle location
+    
+    # Generate random color for the virus
+    li $v0, 42                # Syscall for random number generation
+    li $a0, 0                 # Random generator ID
+    li $a1, 3                 # Generate a random number between 0 and 2 (inclusive)
+    syscall
+    
+    # Load first color from ColorOptions based on random number
+    la $t8, ColorOptions      # Load base address of color options
+    sll $a0, $a0, 2           # Multiply random number by 4 to get the correct offset
+    add $t8, $t8, $a0         # Get address of the selected color
+    lw $t9, 0($t8)            # Load the selected color into $t9
+
+    # Generate random height for the virus
+    li $v0, 42                # Syscall for random number generation
+    li $a0, 0                 # Random generator ID
+    lw $a1, Height_empty_part            # Generate a random number between 0 and height (exclusive)
+    syscall
+    
+    
+    addi, $a0, $a0, 13
+    
+    mult, $t3, $t3, $a0 
+    add $t3, $t1, $t3 # width location of virus in t3
+
+    # Generate random width for the virus
+    li $v0, 42                # Syscall for random number generation
+    li $a0, 0                 # Random generator ID
+    lw $a1, Width_empty_part             # Generate a random number between 0 and height (exclusive)
+    syscall
+    
+    mult, $t2, $t2, $a0 
+    add $t3, $t2, $t3
+    
+    move $s4, $t3
+    
+    sw $t9, 0($s4)
+    
+    subi $t4, $t4, 1
+    
+    move $s4, $s3               # copy of origin that will be the same when it leaves the virus branch. will be used in game loop ***
+    j virus
+
     
 # Assume the base address of the display is in $t0
 # Assume the base address of the field (game map) is in $s0
 repaint:
     la $s0, field
     lw $t0, ADDR_DSPL
-    addi $s6, $s6, 1672
+    addi $s6, $s6, 2048
 paint_screen:
     beq $s6, $s7, game_loop
     lw $s5, 0($s0)
@@ -214,63 +282,17 @@ paint_screen:
     addi $t0, $t0, 4
     addi $s7, $s7, 1
     j paint_screen 
-    
-
-    # lw $t4, VirusNumber # counter for virus
-    
-# virus:
-# beq $t4, $zero, game_loop
-    # li $t1, 0
-    # li $t2, 4
-    # li $t3, 128
-    # addi $t1, $t6, 96 # load t1 with top left bottle location
-    
-    # # Generate random color for the virus
-    # li $v0, 42                # Syscall for random number generation
-    # li $a0, 0                 # Random generator ID
-    # li $a1, 3                 # Generate a random number between 0 and 2 (inclusive)
-    # syscall
-    
-    # # Load first color from ColorOptions based on random number
-    # la $t8, ColorOptions      # Load base address of color options
-    # sll $a0, $a0, 2           # Multiply random number by 4 to get the correct offset
-    # add $t8, $t8, $a0         # Get address of the selected color
-    # lw $t9, 0($t8)            # Load the selected color into $t9
-
-    # # Generate random height for the virus
-    # li $v0, 42                # Syscall for random number generation
-    # li $a0, 0                 # Random generator ID
-    # lw $a1, Height_empty_part            # Generate a random number between 0 and height (exclusive)
-    # syscall
-    
-    # addi $a0, $a0, 13
-    
-    # mult, $t3, $t3, $a0 
-    # add $t3, $t1, $t3 # width location of virus in t3
-
-    # # Generate random width for the virus
-    # li $v0, 42                # Syscall for random number generation
-    # li $a0, 0                 # Random generator ID
-    # lw $a1, Width_empty_part             # Generate a random number between 0 and height (exclusive)
-    # syscall
-    
-    # mult, $t2, $t2, $a0 
-    # add $t3, $t2, $t3
-    # sw $t9, 0($t3)
-    
-    # subi $t4, $t4, 1
-    # j virus
-
+  
 # Main game loop placeholder
 game_loop:
     # Short delay for better handling of keyboard polling
     li $v0, 32                    # Syscall for sleep
-    li $a0, 10                    # Sleep for 1 ms
+    li $a0, 300                    # Sleep for 100 ms
     syscall
     
     lw $t0, ADDR_KBRD             # $t0 = base address for keyboard
     lw $t8, 0($t0)                # Load first word from keyboard
-    beqz $t8, game_loop                # If no key pressed, continue polling
+    beqz $t8, move_down                # If no key pressed, continue polling
 
     lw $t2, 4($t0)                # Load the ASCII value of the pressed key
 
@@ -294,21 +316,107 @@ game_loop:
     li $t3, 0x71              # ASCII value for 'q'
     beq $t2, $t3, quit_game
 
-    j game_loop               # Continue looping if no valid key is pressed
+    j move_down               # Continue looping if no valid key is pressed
     
 rotate_capsule:
-  
-    j game_loop
 
-rotate_vertical:
-    j game_loop
+beq $zero, $t5, rotate_capsule_vertical
+j rotate_capsule_horizontal
+
+rotate_capsule_horizontal:
+    # Load the position of the capsule
+    lw $t9, 8($s3)     # Load the color of the bottom part of the capsule
+    lw $t8, 12($s3)  # Load the color of the top part of the capsule
+    lw $t7, Background        # Load the color of the background
+    
+    lw $t1, -120($s3)           # Load color right of original postition of bottom pixel
+
+    
+    bne $t1, $t7, game_loop
+
+    sw $t7, 12($s3) 
+    
+
+    # Store the colors at the new position to move the capsule
+
+    sw $t8, 8($s3)         # Store top part of the capsule at new position
+    sw $t9, -120($s3)         # Store top part of the capsule at new position
+
+    addi, $t5, $t5, -1           # update rotate variable
+    
+    # Update the display
+    
+    j repaint               # Re-paint the screen
+
+rotate_capsule_vertical:
+  
+    # Load the position of the capsule
+    lw $t9, 8($s3)     # Load the color of the bottom part of the capsule
+    lw $t8, -120($s3)  # Load the color of the top part of the capsule
+    lw $t7, Background        # Load the color of the background
+    
+    lw $t1, 12($s3)           # Load color right of original postition of bottom pixel
+
+    
+    bne $t1, $t7, game_loop
+
+    sw $t7, -120($s3) 
+    
+
+    # Store the colors at the new position to move the capsule
+
+    sw $t8, 12($s3)         # Store top part of the capsule at new position
+
+    addi, $t5, $t5, 1           # update rotate variable
+    
+    # Update the display
+    
+    j repaint               # Re-paint the screen
+
  
 
 move_left:
+    
+    beq $zero, $t5, move_left_vertical
+    j move_left_horizontal
+
+move_left_horizontal:
     # Load the position of the capsule
-    lw $t9, 8($s3)     # Load the color of the top part of the capsule
-    lw $t8, -120($s3)  # Load the color of the bottom part of the capsule
+    lw $t9, 8($s3)     # Load the color of the left part of the capsule
+    lw $t8, 12($s3)  # Load the color of the right part of the capsule
     lw $t7, Background        # Load the color of the background
+    
+    lw $t1, 4($s3)           # Load color left of original postition of bottom pixel
+
+    
+    bne $t1, $t7, game_loop
+    
+    sw $t7, 12($s3) 
+    
+    # Calculate the new position by adding the row offset
+    addi $s3, $s3, -4        # Move down one row (128 is the row offset)
+
+    # Store the colors at the new position to move the capsule
+    sw $t9, 8($s3)            # Store top part of the capsule at new position
+    sw $t8, 12($s3)         # Store bottom part of the capsule at new position
+
+    # Update the display
+    j repaint               # Re-paint the screen
+
+
+
+move_left_vertical:
+    # Load the position of the capsule
+    lw $t9, 8($s3)     # Load the color of the bottom part of the capsule
+    lw $t8, -120($s3)  # Load the color of the top part of the capsule
+    lw $t7, Background        # Load the color of the background
+    
+    lw $t1, 4($s3)           # Load color left of original postition of bottom pixel
+    lw $t2, -124($s3)          # Load color left of original postition of top pixel
+    
+    bne $t1, $t7, game_loop
+    bne $t2, $t7, game_loop
+    
     
     sw $t7, 8($s3)
     sw $t7, -120($s3) 
@@ -324,10 +432,44 @@ move_left:
     j repaint               # Re-paint the screen
 
 move_right:
+
+    beq $zero, $t5, move_right_vertical
+    j move_right_horizontal
+
+move_right_horizontal:
     # Load the position of the capsule
-    lw $t9, 8($s3)     # Load the color of the top part of the capsule
-    lw $t8, -120($s3)  # Load the color of the bottom part of the capsule
+    lw $t9, 8($s3)     # Load the color of the left part of the capsule
+    lw $t8, 12($s3)  # Load the color of the right part of the capsule
     lw $t7, Background        # Load the color of the background
+    
+    lw $t1, 16($s3)           # Load color right of original postition of right pixel
+
+    
+    bne $t1, $t7, game_loop
+    
+    sw $t7, 8($s3) 
+    
+    # Calculate the new position by adding the row offset
+    addi $s3, $s3, 4        # Move down one row (128 is the row offset)
+
+    # Store the colors at the new position to move the capsule
+    sw $t9, 8($s3)            # Store top part of the capsule at new position
+    sw $t8, 12($s3)         # Store bottom part of the capsule at new position
+
+    # Update the display
+    j repaint               # Re-paint the screen
+    
+move_right_vertical:
+    # Load the position of the capsule
+    lw $t9, 8($s3)     # Load the color of the bottom part of the capsule
+    lw $t8, -120($s3)  # Load the color of the top part of the capsule
+    lw $t7, Background        # Load the color of the background
+    
+    lw $t1, 12($s3)           # Load color right of original postition of bottom pixel
+    lw $t2, -116($s3)          # Load color right of original postition of top pixel
+    
+    bne $t1, $t7, game_loop
+    bne $t2, $t7, game_loop
     
     sw $t7, 8($s3)
     sw $t7, -120($s3) 
@@ -344,11 +486,47 @@ move_right:
    
    
 move_down:
+    
+    beq $zero, $t5, move_down_vertical
+    j move_down_horizontal
+
+move_down_horizontal:
     # Load the position of the capsule
-    lw $t9, 8($s3)     # Load the color of the top part of the capsule
-    lw $t8, -120($s3)  # Load the color of the bottom part of the capsule
+    lw $t9, 8($s3)     # Load the color of the left part of the capsule
+    lw $t8, 12($s3)  # Load the color of the right part of the capsule
     lw $t7, Background        # Load the color of the background
     
+    lw $t1, 136($s3)           # Load color below of original postition of left pixel
+    lw $t2, 140($s3)           # Load color below of original postition of right pixel
+
+    
+    bne $t1, $t7, change_capsule 
+    bne $t2, $t7, change_capsule    
+    
+    
+    sw $t7, 8($s3) 
+    sw $t7, 12($s3) 
+    
+    # Calculate the new position by adding the row offset
+    addi $s3, $s3, 128        # Move down one row (128 is the row offset)
+
+    # Store the colors at the new position to move the capsule
+    sw $t9, 8($s3)            # Store top part of the capsule at new position
+    sw $t8, 12($s3)         # Store bottom part of the capsule at new position
+
+    # Update the display
+    j repaint               # Re-paint the screen
+    
+    
+move_down_vertical:
+    lw $t9, 8($s3)     # Load the color of the bottom part of the capsule
+    lw $t8, -120($s3)  # Load the color of the top part of the capsule
+    lw $t7, Background        # Load the color of the background
+    
+    lw $t1, 136($s3)          # Load color below original postition of bottom pixel
+    
+    bne $t1, $t7, change_capsule 
+
     sw $t7, 8($s3)
     sw $t7, -120($s3) 
     
@@ -362,8 +540,69 @@ move_down:
     # Update the display
     j repaint               # Re-paint the screen
            
-    
+change_capsule:
+# 4-stack logic starts here
+    beq $s3, 0xffffff, move_on
+    bne $t9, $t1, move_on
+    # beq $t9, $t8, double_pixel
+    lw $t2, 264($s3)
+    lw $t4, 392($s3)
+    bne $t9, $t2, move_on
+    bne $t9, $t4, move_on
 
+# double_pixel:
+    # lw $t2, 264($s3)
+    # bne $t9, $t2, move_on
+    # sw $t7, -120($s3)
+    # sw $t7, 264($s3)
+    # sw $t7, 136($s3)
+    # sw $t7, 8($s3)
+    # j move_on
+    
+    
+delete_stack:
+    sw $t7, 392($s3)
+    sw $t7, 264($s3)
+    sw $t7, 136($s3)
+    sw $t7, 8($s3)
+    
+    j move_on
+
+move_on:
+    beq $s4, $s3, quit_game    # checks to see if the capsule is in same position as where the capsules spawn.
+    addi, $s3, $s3, 4
+    beq $s4, $s3, quit_game     # All these statements check if there is any overflow at the top of the bottle.
+    addi, $s3, $s3, 4
+    beq $s4, $s3, quit_game
+    addi, $s3, $s3, -12
+    beq $s4, $s3, quit_game
+    addi, $s3, $s3, -4
+    beq $s4, $s3, quit_game
+    
+    beq $s4, $s3, quit_game    # checks to see if the capsule is in same position as where the capsules spawn.
+    addi, $s3, $s3, 128
+    beq $s4, $s3, quit_game     # All these statements check if there is any overflow at the top of the bottle.
+    addi, $s3, $s3, 4
+    beq $s4, $s3, quit_game
+    addi, $s3, $s3, 4
+    beq $s4, $s3, quit_game
+    addi, $s3, $s3, 4
+    beq $s4, $s3, quit_game
+
+
+    move $s3, $s4               # ***
+    li $t4, -1
+    
+    lw $t9, 68($s3)     # load color bottom of next_capsule
+    lw $t8, -60($s3)     # load color top of next_capsule
+    
+    sw $t9, 8($s3)     # load color bottom of next_capsule to original position
+    sw $t8, -120($s3)     # load color top of next_capsule to original position
+    
+    li $t5, 0               # when it renters loop the capsule will be vertical, so t5 needs to be set back to zero if the last capsule stopped
+                            # when it was horizontal.
+    j next_capsule
+    
 quit_game:
     li $v0, 10                # Syscall to terminate the program
     syscall
