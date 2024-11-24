@@ -77,7 +77,7 @@ field:
 # Main function to initialize and start the game
 
 Difficulty:
-
+li $a2, 500
 lw $t8, ADDR_DSPL        # Load base address for display
 addi $t8, $t8, 648        # Start at 8th line (y-position)
 lw $t2, BorderColor
@@ -365,11 +365,21 @@ paint_screen:
   
 # Main game loop placeholder
 game_loop:
+
+beq $a2, 100, constant_speed
     # Short delay for better handling of keyboard polling
     li $v0, 32                    # Syscall for sleep
-    li $a0, 300                    # Sleep for 10 ms
+    move $a0, $a2                    # Sleep for a2 ms
     syscall
+    j input
     
+constant_speed:
+    # Short delay for better handling of keyboard polling
+    li $v0, 32                    # Syscall for sleep
+    li $a0, 100                    # Sleep for 100 ms
+    syscall
+
+input:
     lw $t0, ADDR_KBRD             # $t0 = base address for keyboard
     lw $t8, 0($t0)                # Load first word from keyboard
     beqz $t8, move_down_gravity                # If no key pressed, continue polling
@@ -787,6 +797,7 @@ sw $t8, -120($s3)     # load color top of next_capsule to original position
 
 li $t5, 0               # when it renters loop the capsule will be vertical, so t5 needs to be set back to zero if the last capsule stopped
                         # when it was horizontal.
+subi $a2, $a2, 20       # changes speed rate by 20 ms
 j next_capsule
 
 quit_game:
