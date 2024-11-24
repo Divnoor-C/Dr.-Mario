@@ -367,12 +367,12 @@ paint_screen:
 game_loop:
     # Short delay for better handling of keyboard polling
     li $v0, 32                    # Syscall for sleep
-    li $a0, 10                    # Sleep for 10 ms
+    li $a0, 300                    # Sleep for 10 ms
     syscall
     
     lw $t0, ADDR_KBRD             # $t0 = base address for keyboard
     lw $t8, 0($t0)                # Load first word from keyboard
-    beqz $t8, game_loop                # If no key pressed, continue polling
+    beqz $t8, move_down_gravity                # If no key pressed, continue polling
 
     lw $t2, 4($t0)                # Load the ASCII value of the pressed key
 
@@ -400,7 +400,7 @@ game_loop:
     li $t3, 0x71              # ASCII value for 'q'
     beq $t2, $t3, quit_game
 
-    j game_loop               # Continue looping if no valid key is pressed
+    j move_down_gravity               # Continue looping if no valid key is pressed
     
 
 
@@ -679,7 +679,7 @@ move_down_horizontal:
     sw $t8, 12($s3)         # Store bottom part of the capsule at new position
 
     # Update the display
-    j repaint               # Re-paint the screen
+    j move_down_horizontal               # Re-paint the screen
     
     
 move_down_vertical:
@@ -703,7 +703,66 @@ move_down_vertical:
     sw $t8, -120($s3)         # Store bottom part of the capsule at new position
 
     # Update the display
+    j move_down_vertical           # Re-paint the screen
+    
+    
+    
+move_down_gravity:
+
+beq $zero, $t5, move_down_vertical_gravity
+j move_down_horizontal_gravity
+
+move_down_horizontal_gravity:
+    # Load the position of the capsule
+    lw $t9, 8($s3)     # Load the color of the left part of the capsule
+    lw $t8, 12($s3)  # Load the color of the right part of the capsule
+    lw $t7, Background        # Load the color of the background
+    
+    lw $t1, 136($s3)           # Load color below of original postition of left pixel
+    lw $t2, 140($s3)           # Load color below of original postition of right pixel
+
+    
+    bne $t1, $t7, change_capsule 
+    bne $t2, $t7, change_capsule    
+    
+    
+    sw $t7, 8($s3) 
+    sw $t7, 12($s3) 
+    
+    # Calculate the new position by adding the row offset
+    addi $s3, $s3, 128        # Move down one row (128 is the row offset)
+
+    # Store the colors at the new position to move the capsule
+    sw $t9, 8($s3)            # Store top part of the capsule at new position
+    sw $t8, 12($s3)         # Store bottom part of the capsule at new position
+
+    # Update the display
     j repaint               # Re-paint the screen
+    
+    
+move_down_vertical_gravity:
+    lw $t9, 8($s3)     # Load the color of the bottom part of the capsule
+    lw $t8, -120($s3)  # Load the color of the top part of the capsule
+    lw $t7, Background        # Load the color of the background
+    
+    lw $t1, 136($s3)          # Load color below original postition of bottom pixel
+    
+    bne $t1, $t7, change_capsule 
+
+    
+    sw $t7, 8($s3)
+    sw $t7, -120($s3) 
+    
+    # Calculate the new position by adding the row offset
+    addi $s3, $s3, 128        # Move down one row (128 is the row offset)
+
+    # Store the colors at the new position to move the capsule
+    sw $t9, 8($s3)            # Store top part of the capsule at new position
+    sw $t8, -120($s3)         # Store bottom part of the capsule at new position
+
+    # Update the display
+    j repaint               # Re-paint the screen
+    
            
 change_capsule:
 beq $s4, $s3, quit_game    # checks to see if the capsule is in same position as where the capsules spawn.
