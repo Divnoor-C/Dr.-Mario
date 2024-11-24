@@ -77,7 +77,6 @@ field:
 # Main function to initialize and start the game
 
 Difficulty:
-li $a2, 500
 lw $t8, ADDR_DSPL        # Load base address for display
 addi $t8, $t8, 648        # Start at 8th line (y-position)
 lw $t2, BorderColor
@@ -144,12 +143,15 @@ lw $t2, BorderColor
 
 easy:
 lw $a3, VirusNumber_Easy
+li $a2, 500
 j main
 medium:
 lw $a3, VirusNumber_Medium
+li $a2, 400
 j main
 hard:
 lw $a3, VirusNumber_Hard
+li $a2, 300
 j main
 
 
