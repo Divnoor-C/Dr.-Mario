@@ -30,6 +30,10 @@ Width:
     .word 23      # Width of the box
 Height:    
     .word 25      # Height of the box
+Box_Width:     
+    .word 21      # Width of the inner box
+Box_Height:    
+    .word 23      # Height of the inner box
 Height_empty_part:
     .word 11      # Width of the box's hollow part
 Width_empty_part:
@@ -143,15 +147,15 @@ lw $t2, BorderColor
 
 easy:
 lw $a3, VirusNumber_Easy
-li $a2, 500
+li $v1, 600
 j main
 medium:
 lw $a3, VirusNumber_Medium
-li $a2, 400
+li $v1, 500
 j main
 hard:
 lw $a3, VirusNumber_Hard
-li $a2, 300
+li $v1, 400
 j main
 
 
@@ -490,17 +494,17 @@ paint_screen:
   
 # Main game loop placeholder
 game_loop:
-beq $a2, 100, constant_speed
+ble $v1, 160, constant_speed
     # Short delay for better handling of keyboard polling
     li $v0, 32                    # Syscall for sleep
-    move $a0, $a2                    # Sleep for a2 ms
+    move $a0, $v1                    # Sleep for a2 ms
     syscall
     j input
     
 constant_speed:
     # Short delay for better handling of keyboard polling
     li $v0, 32                    # Syscall for sleep
-    li $a0, 100                    # Sleep for 100 ms
+    li $a0, 160                    # Sleep for 100 ms
     syscall
 
 input:
@@ -913,15 +917,114 @@ move_down_vertical_gravity:
     
            
 change_capsule:
-beq $s4, $s3, quit_game    # checks to see if the capsule is in same position as where the capsules spawn.
-addi, $s3, $s3, 4
-beq $s4, $s3, quit_game     # All these statements check if there is any overflow at the top of the bottle.
-addi, $s3, $s3, 4
-beq $s4, $s3, quit_game
-addi, $s3, $s3, -12
-beq $s4, $s3, quit_game
-addi, $s3, $s3, -4
-beq $s4, $s3, quit_game
+    la $t0, field        # Load base address for display
+    addi $t0, $t0, 780
+    
+    lw $a1, Box_Width              # Total width of the box
+    lw $a2, Box_Height             # Total height of the box
+
+vertical_stack:
+# Outer loop: Iterate over rows
+li $t7, 0                  # Column counter
+move $s0, $t0              # Temporary pointer for the current row
+outer_loop:
+    beq $t7, $a1, move_on # Exit if we've iterated through all columns
+
+    # Inner loop: Iterate over rows
+    li $t8, 0              # Row counter
+    move $s1, $s0          # Temporary pointer for the current row
+    
+inner_loop:
+    beq $t8, $a2, next_column # Exit if we've iterated through all rows
+    lw $t4, 0($s1)
+    beq $t4, 0x0, continue
+    lw $t5, 128($s1)
+    bne $t4, $t5, continue
+    j stack
+    continue:
+    # Move to the next pixel (row)
+    addi $s1, $s1, 128       # Move pointer to the next word in memory
+    addi $t8, $t8, 1       # Increment row counter
+    j inner_loop           # Repeat for the next column
+
+# Move to the next row
+next_column:
+    addi $s0, $s0, 4      # Move pointer to the next column
+    addi $t7, $t7, 1       # Increment column counter
+    j outer_loop           # Repeat for the next column
+    
+    
+stack:
+    move $s7, $s1       #starting position of stack
+    move $s6, $s1
+    addi $s7, $s7, 256
+    
+    li $t2, 2
+    
+    inner_stack:
+        lw $t6, 0($s7)
+        bne $t6, $t4, terminate
+        
+        addi $s7, $s7, 128
+        addi $t2, $t2, 1
+        j inner_stack
+    
+    
+    terminate:
+        bgt $t2, 3, continue_terminate
+        j continue
+        
+        continue_terminate:
+        li $t1, 0       #background
+        beq $s6, $s7, drop
+        sw $t1, 0($s6)
+        addi $s6, $s6, 128
+        j continue_terminate
+        
+        
+    drop:
+        move $s6, $s1
+        drop_logic:
+        lw $t2, 0($s7)
+        bne $t2, $t1, drop_down 
+        addi $s7, $s7, 128
+        j drop_logic
+        drop_down:
+            lw $s5, -128($s6)
+            sw $t1, -128($s6)
+                
+            beq $s5, $t1, vertical_stack
+            sw $s5, -128($s7)
+                
+            addi $s7, $s7, -128
+            addi $s6, $s6, -128
+            j drop_down
+
+
+move_on:
+
+    beq $s4, $s3, quit_game    # checks to see if the capsule is in same position as where the capsules spawn.
+    addi, $s3, $s3, 4
+    beq $s4, $s3, quit_game     # All these statements check if there is any overflow at the top of the bottle.
+    addi, $s3, $s3, 4
+    beq $s4, $s3, quit_game
+    addi, $s3, $s3, -12
+    beq $s4, $s3, quit_game
+    addi, $s3, $s3, -4
+    beq $s4, $s3, quit_game
+
+    addi, $s3, $s3, -120
+
+    beq $s4, $s3, quit_game    # checks to see if the capsule is in same position as where the capsules spawn.
+    addi, $s3, $s3, 4
+    beq $s4, $s3, quit_game     # All these statements check if there is any overflow at the top of the bottle.
+    addi, $s3, $s3, 4
+    beq $s4, $s3, quit_game
+    addi, $s3, $s3, -12
+    beq $s4, $s3, quit_game
+    addi, $s3, $s3, -4
+    beq $s4, $s3, quit_game
+
 
 
 move $s3, $s4               # ***
@@ -959,7 +1062,8 @@ sw $t8, 1092($s3)     # load color top of next_capsule to original position
 
 li $t5, 0               # when it renters loop the capsule will be vertical, so t5 needs to be set back to zero if the last capsule stopped
                         # when it was horizontal.
-subi $a2, $a2, 20       # changes speed rate by 20 ms
+                        
+subi $v1, $v1, 20       # changes speed rate by 20 ms
 
 j next_capsule
 
