@@ -78,7 +78,7 @@ field:
 
 Difficulty:
 lw $t8, ADDR_DSPL        # Load base address for display
-addi $t8, $t8, 648        # Start at 8th line (y-position)
+addi $t8, $t8, 1672        # Start at 8th line (y-position)
 lw $t2, BorderColor
 
     draw_start_screen:
@@ -228,7 +228,6 @@ draw_bottom:
 
     
 next_capsule: 
-    # Generate random color for the first part of the capsule
     li $v0, 42                # Syscall for random number generation
     li $a0, 0                 # Random generator ID
     li $a1, 3                 # Generate a random number between 0 and 2 (inclusive)
@@ -239,12 +238,9 @@ next_capsule:
     sll $a0, $a0, 2           # Multiply random number by 4 to get the correct offset
     add $t8, $t8, $a0         # Get address of the selected color
     lw $t9, 0($t8)            # Load the selected color into $t9
-    
 
-    # sw $t9, topPixelColor
-    sw $t9, 68($s3)     # Save location of bottom part of next capsule
+    sw $t9, 1604($s3)     # Save location of bottom part of next capsule
     
-
     # Generate random color for the second part of the capsule
     li $v0, 42                # Syscall for another random number generation
     li $a0, 0                 # Random generator ID
@@ -257,8 +253,8 @@ next_capsule:
     add $t8, $t8, $a0         # Get address of the selected color
     lw $t9, 0($t8)            # Load the selected color into $t9
 
-    sw $t9, -60($s3)    # Save location of top  part of next capsule
-    
+    sw $t9, 1476($s3)    # Save location of top  part of next capsule
+
     bltz $t4, repaint
     
     
@@ -292,6 +288,133 @@ first_capsule:
     lw $t9, 0($t8)            # Load the selected color into $t9
 
     sw $t9, -120($s3)
+    
+    
+    
+    
+    
+        # Generate random color for the first part of the capsule
+    li $v0, 42                # Syscall for random number generation
+    li $a0, 0                 # Random generator ID
+    li $a1, 3                 # Generate a random number between 0 and 2 (inclusive)
+    syscall
+
+    # Load first color from ColorOptions based on random number
+    la $t8, ColorOptions      # Load base address of color options
+    sll $a0, $a0, 2           # Multiply random number by 4 to get the correct offset
+    add $t8, $t8, $a0         # Get address of the selected color
+    lw $t9, 0($t8)            # Load the selected color into $t9
+    
+    sw $t9, 68($s3)     # Save location of bottom part of next capsule
+    
+
+    # Generate random color for the second part of the capsule
+    li $v0, 42                # Syscall for another random number generation
+    li $a0, 0                 # Random generator ID
+    li $a1, 3                 # Generate a random number between 0 and 2 (inclusive)
+    syscall
+
+    # Load second color from ColorOptions based on the new random number
+    la $t8, ColorOptions      # Load base address of color options
+    sll $a0, $a0, 2           # Multiply random number by 4 to get the correct offset
+    add $t8, $t8, $a0         # Get address of the selected color
+    lw $t9, 0($t8)            # Load the selected color into $t9
+
+    sw $t9, -60($s3)    # Save location of top  part of next capsule
+    
+    
+    
+    
+    
+    
+    
+    li $v0, 42                # Syscall for random number generation
+    li $a0, 0                 # Random generator ID
+    li $a1, 3                 # Generate a random number between 0 and 2 (inclusive)
+    syscall
+
+    # Load first color from ColorOptions based on random number
+    la $t8, ColorOptions      # Load base address of color options
+    sll $a0, $a0, 2           # Multiply random number by 4 to get the correct offset
+    add $t8, $t8, $a0         # Get address of the selected color
+    lw $t9, 0($t8)            # Load the selected color into $t9
+
+    sw $t9, 452($s3)     # Save location of bottom part of next capsule
+    
+    # Generate random color for the second part of the capsule
+    li $v0, 42                # Syscall for another random number generation
+    li $a0, 0                 # Random generator ID
+    li $a1, 3                 # Generate a random number between 0 and 2 (inclusive)
+    syscall
+
+    # Load second color from ColorOptions based on the new random number
+    la $t8, ColorOptions      # Load base address of color options
+    sll $a0, $a0, 2           # Multiply random number by 4 to get the correct offset
+    add $t8, $t8, $a0         # Get address of the selected color
+    lw $t9, 0($t8)            # Load the selected color into $t9
+
+    sw $t9, 324($s3)    # Save location of top  part of next capsule
+        
+    
+    
+    
+    
+    
+    
+    li $v0, 42                # Syscall for random number generation
+    li $a0, 0                 # Random generator ID
+    li $a1, 3                 # Generate a random number between 0 and 2 (inclusive)
+    syscall
+
+    # Load first color from ColorOptions based on random number
+    la $t8, ColorOptions      # Load base address of color options
+    sll $a0, $a0, 2           # Multiply random number by 4 to get the correct offset
+    add $t8, $t8, $a0         # Get address of the selected color
+    lw $t9, 0($t8)            # Load the selected color into $t9
+
+    sw $t9, 836($s3)     # Save location of bottom part of next capsule
+    
+    # Generate random color for the second part of the capsule
+    li $v0, 42                # Syscall for another random number generation
+    li $a0, 0                 # Random generator ID
+    li $a1, 3                 # Generate a random number between 0 and 2 (inclusive)
+    syscall
+
+    # Load second color from ColorOptions based on the new random number
+    la $t8, ColorOptions      # Load base address of color options
+    sll $a0, $a0, 2           # Multiply random number by 4 to get the correct offset
+    add $t8, $t8, $a0         # Get address of the selected color
+    lw $t9, 0($t8)            # Load the selected color into $t9
+
+    sw $t9, 708($s3)    # Save location of top  part of next capsule  
+    
+        li $v0, 42                # Syscall for random number generation
+    li $a0, 0                 # Random generator ID
+    li $a1, 3                 # Generate a random number between 0 and 2 (inclusive)
+    syscall
+
+    # Load first color from ColorOptions based on random number
+    la $t8, ColorOptions      # Load base address of color options
+    sll $a0, $a0, 2           # Multiply random number by 4 to get the correct offset
+    add $t8, $t8, $a0         # Get address of the selected color
+    lw $t9, 0($t8)            # Load the selected color into $t9
+
+    sw $t9, 1220($s3)     # Save location of bottom part of next capsule
+    
+    # Generate random color for the second part of the capsule
+    li $v0, 42                # Syscall for another random number generation
+    li $a0, 0                 # Random generator ID
+    li $a1, 3                 # Generate a random number between 0 and 2 (inclusive)
+    syscall
+
+    # Load second color from ColorOptions based on the new random number
+    la $t8, ColorOptions      # Load base address of color options
+    sll $a0, $a0, 2           # Multiply random number by 4 to get the correct offset
+    add $t8, $t8, $a0         # Get address of the selected color
+    lw $t9, 0($t8)            # Load the selected color into $t9
+
+    sw $t9, 1092($s3)    # Save location of top  part of next capsule
+    
 
 move $t4, $a3 # counter for virus
 
@@ -800,9 +923,34 @@ lw $t8, -60($s3)     # load color top of next_capsule
 sw $t9, 8($s3)     # load color bottom of next_capsule to original position
 sw $t8, -120($s3)     # load color top of next_capsule to original position
 
+lw $t9, 452($s3)     # load color bottom of next_capsule
+lw $t8, 324($s3)     # load color top of next_capsule
+
+sw $t9, 68($s3)     # load color bottom of next_capsule to original position
+sw $t8, -60($s3)     # load color top of next_capsule to original position
+
+lw $t9, 836($s3)     # load color bottom of next_capsule
+lw $t8, 708($s3)     # load color top of next_capsule
+
+sw $t9, 452($s3)     # load color bottom of next_capsule to original position
+sw $t8, 324($s3)     # load color top of next_capsule to original position
+
+lw $t9, 1220($s3)     # load color bottom of next_capsule
+lw $t8, 1092($s3)     # load color top of next_capsule
+
+sw $t9, 836($s3)     # load color bottom of next_capsule to original position
+sw $t8, 708($s3)     # load color top of next_capsule to original position
+
+lw $t9, 1604($s3)     # load color bottom of next_capsule
+lw $t8, 1476($s3)     # load color top of next_capsule
+
+sw $t9, 1220($s3)     # load color bottom of next_capsule to original position
+sw $t8, 1092($s3)     # load color top of next_capsule to original position
+
 li $t5, 0               # when it renters loop the capsule will be vertical, so t5 needs to be set back to zero if the last capsule stopped
                         # when it was horizontal.
 subi $a2, $a2, 20       # changes speed rate by 20 ms
+
 j next_capsule
 
 retry:
