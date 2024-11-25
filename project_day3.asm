@@ -545,7 +545,7 @@ input:
 pause:
 
 lw $t8, ADDR_DSPL        # Load base address for display
-addi $t8, $t8, 1008        # Start at 8th line (y-position)
+addi $t8, $t8, 4104        # Start at 8th line (y-position)
 lw $t2, BorderColor
 
     draw_pause:
@@ -558,8 +558,9 @@ lw $t2, BorderColor
         sw $t2, 260($t8)
         sw $t2, 264($t8)
         sw $t2, 384($t8)
+        sw $t2, 512($t8)
         
-        addi, $t8, $t8, 640
+        addi, $t8, $t8, 24
         
         sw $t2, 0($t8)
         sw $t2, 4($t8)
@@ -571,16 +572,25 @@ lw $t2, BorderColor
         sw $t2, 264($t8)
         sw $t2, 384($t8)
         sw $t2, 392($t8)
+        sw $t2, 512($t8)
+        sw $t2, 520($t8)
         
-        addi, $t8, $t8, 640
+        addi, $t8, $t8, 24
         
         sw $t2, 0($t8)
         sw $t2, 8($t8)
         sw $t2, 128($t8)
-        sw $t2, 132($t8)
         sw $t2, 136($t8)
+        sw $t2, 256($t8)
+        sw $t2, 264($t8)
+        sw $t2, 384($t8)
+        sw $t2, 392($t8)
+        sw $t2, 512($t8)
+        sw $t2, 520($t8)
+        sw $t2, 516($t8)
 
-        addi, $t8, $t8, 384
+
+        addi, $t8, $t8, 24
         
         sw $t2, 0($t8)
         sw $t2, 4($t8)
@@ -594,7 +604,7 @@ lw $t2, BorderColor
         sw $t2, 516($t8)
         sw $t2, 512($t8)
         
-        addi, $t8, $t8, 768
+        addi, $t8, $t8, 24
         sw $t2, 0($t8)
         sw $t2, 4($t8)
         sw $t2, 8($t8)
