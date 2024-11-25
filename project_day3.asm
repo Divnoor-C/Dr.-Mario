@@ -807,12 +807,16 @@ j next_capsule
 
 retry:
     la $s0, field
+    li $s7, 0
     li $s6, 1672
     li $t8, 0
+    lw $t2, ADDR_DSPL
 paint_black:
     beq $s6, $s7, Difficulty
     sw $t8, 0($s0)
+    sw $t8, 0($t2)
     addi $s0, $s0, 4
+    addi $t2, $t2, 4
     addi $s7, $s7, 1
     j paint_black 
 
