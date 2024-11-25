@@ -541,32 +541,88 @@ move_down_vertical:
     j repaint               # Re-paint the screen
            
 change_capsule:
-# 4-stack logic starts here
-    beq $s3, 0xffffff, move_on
-    bne $t9, $t1, move_on
-    # beq $t9, $t8, double_pixel
-    lw $t2, 264($s3)
-    lw $t4, 392($s3)
-    bne $t9, $t2, move_on
-    bne $t9, $t4, move_on
+    la $t0, field        # Load base address for display
+    addi $t0, $t0, 780
+    
+    lw $a1, Box_Width              # Total width of the box
+    lw $a2, Box_Height             # Total height of the box
 
-# double_pixel:
-    # lw $t2, 264($s3)
-    # bne $t9, $t2, move_on
-    # sw $t7, -120($s3)
-    # sw $t7, 264($s3)
-    # sw $t7, 136($s3)
-    # sw $t7, 8($s3)
-    # j move_on
+vertical_stack:
+# Outer loop: Iterate over rows
+li $t7, 0                  # Column counter
+move $s0, $t0              # Temporary pointer for the current row
+outer_loop:
+    beq $t7, $a1, move_on # Exit if we've iterated through all columns
+
+    # Inner loop: Iterate over rows
+    li $t8, 0              # Row counter
+    move $s1, $s0          # Temporary pointer for the current row
+    
+inner_loop:
+    beq $t8, $a2, next_column # Exit if we've iterated through all rows
+    lw $t4, 0($s1)
+    beq $t4, 0x0, continue
+    lw $t5, 128($s1)
+    bne $t4, $t5, continue
+    j stack
+    continue:
+    # Move to the next pixel (row)
+    addi $s1, $s1, 128       # Move pointer to the next word in memory
+    addi $t8, $t8, 1       # Increment row counter
+    j inner_loop           # Repeat for the next column
+
+# Move to the next row
+next_column:
+    addi $s0, $s0, 4      # Move pointer to the next column
+    addi $t7, $t7, 1       # Increment column counter
+    j outer_loop           # Repeat for the next column
     
     
-delete_stack:
-    sw $t7, 392($s3)
-    sw $t7, 264($s3)
-    sw $t7, 136($s3)
-    sw $t7, 8($s3)
+stack:
+    move $s7, $s1       #starting position of stack
+    move $s6, $s1
+    addi $s7, $s7, 256
     
-    j move_on
+    li $t2, 2
+    
+    inner_stack:
+        lw $t6, 0($s7)
+        bne $t6, $t4, terminate
+        
+        addi $s7, $s7, 128
+        addi $t2, $t2, 1
+        j inner_stack
+    
+    
+    terminate:
+        bgt $t2, 3, continue_terminate
+        j continue
+        
+        continue_terminate:
+        li $t1, 0       #background
+        beq $s6, $s7, drop
+        sw $t1, 0($s6)
+        addi $s6, $s6, 128
+        j continue_terminate
+        
+        
+    drop:
+        move $s6, $s1
+        drop_logic:
+        lw $t2, 0($s7)
+        bne $t2, $t1, drop_down 
+        addi $s7, $s7, 128
+        j drop_logic
+        drop_down:
+            lw $s5, -128($s6)
+            sw $t1, -128($s6)
+                
+            beq $s5, $t1, vertical_stack
+            sw $s5, -128($s7)
+                
+            addi $s7, $s7, -128
+            addi $s6, $s6, -128
+            j drop_down
 
 move_on:
     beq $s4, $s3, quit_game    # checks to see if the capsule is in same position as where the capsules spawn.
