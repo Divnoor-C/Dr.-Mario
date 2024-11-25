@@ -11,7 +11,7 @@
 # - Unit width in pixels:       8
 # - Unit height in pixels:      8
 # - Display width in pixels:    256
-# - Display height in pixels:   256
+# - Display height in pixels:   300
 # - Base Address for Display:   0x10008000 ($gp)
 ##############################################################################
 
@@ -367,7 +367,6 @@ paint_screen:
   
 # Main game loop placeholder
 game_loop:
-
 beq $a2, 100, constant_speed
     # Short delay for better handling of keyboard polling
     li $v0, 32                    # Syscall for sleep
@@ -407,10 +406,14 @@ input:
     # Check for 's' key (move down)
     li $t3, 0x73              # ASCII value for 's'
     beq $t2, $t3, move_down
+    
+    # Check for 'r' key (move down)
+    li $t3, 0x72              # ASCII value for 'r'
+    beq $t2, $t3, retry
 
     # Check for 'q' key (quit)
     li $t3, 0x71              # ASCII value for 'q'
-    beq $t2, $t3, quit_game
+    beq $t2, $t3, quit
 
     j move_down_gravity               # Continue looping if no valid key is pressed
     
@@ -802,6 +805,101 @@ li $t5, 0               # when it renters loop the capsule will be vertical, so 
 subi $a2, $a2, 20       # changes speed rate by 20 ms
 j next_capsule
 
+retry:
+    la $s0, field
+    li $s6, 1672
+    li $t8, 0
+paint_black:
+    beq $s6, $s7, Difficulty
+    sw $t8, 0($s0)
+    addi $s0, $s0, 4
+    addi $s7, $s7, 1
+    j paint_black 
+
+    
 quit_game:
+lw $t8, ADDR_DSPL        # Load base address for display
+addi $t8, $t8, 4104       # Start at 8th line (y-position)
+lw $t2, BorderColor
+    draw_lose_screen:
+        sw $t2, 0($t8)
+        sw $t2, 4($t8)
+        sw $t2, 8($t8)
+        sw $t2, 12($t8)
+        sw $t2, 16($t8)
+        sw $t2, 128($t8)
+        sw $t2, 256($t8)
+        sw $t2, 384($t8)
+        sw $t2, 512($t8)
+        sw $t2, 516($t8)
+        sw $t2, 520($t8)
+        sw $t2, 524($t8)
+        sw $t2, 528($t8)
+        sw $t2, 400($t8)
+        sw $t2, 272($t8)
+        sw $t2, 144($t8)
+
+        addi, $t8, $t8, 24
+        
+        sw $t2, 0($t8)
+        sw $t2, 8($t8)
+        sw $t2, 128($t8)
+        sw $t2, 256($t8)
+        sw $t2, 384($t8)
+        sw $t2, 512($t8)
+        sw $t2, 516($t8)
+        sw $t2, 520($t8)      
+
+        sw $t2, 392($t8)
+        sw $t2, 264($t8)
+        sw $t2, 136($t8)
+
+        addi, $t8, $t8, 16
+        sw $t2, 0($t8)
+        sw $t2, 4($t8)
+        sw $t2, 8($t8)
+        sw $t2, 128($t8)
+        sw $t2, 256($t8)
+        sw $t2, 260($t8)
+        sw $t2, 264($t8)
+        sw $t2, 384($t8)
+        sw $t2, 520($t8)
+        sw $t2, 516($t8)
+        sw $t2, 512($t8)
+        
+        addi, $t8, $t8, 16
+        sw $t2, 0($t8)
+        sw $t2, 4($t8)
+        sw $t2, 8($t8)
+        sw $t2, 128($t8)
+        sw $t2, 136($t8)
+        sw $t2, 256($t8)
+        sw $t2, 260($t8)
+        sw $t2, 264($t8)
+        sw $t2, 384($t8)
+        sw $t2, 512($t8)
+        sw $t2, 396($t8)
+        sw $t2, 528($t8)
+        
+ 
+
+    lw $t0, ADDR_KBRD             # $t0 = base address for keyboard
+    lw $t8, 0($t0)                # Load first word from keyboard
+    beqz $t8, quit_game                # If no key pressed, continue polling
+
+    lw $t2, 4($t0)                # Load the ASCII value of the pressed key
+
+    
+    # Check for 'r' key (move down)
+    li $t3, 0x72              # ASCII value for 'r'
+    beq $t2, $t3, retry
+
+    # Check for 'q' key (quit)
+    li $t3, 0x71              # ASCII value for 'q'
+    beq $t2, $t3, quit
+
+    j quit_game              # Continue looping if no valid key is pressed
+
+quit:
     li $v0, 10                # Syscall to terminate the program
     syscall
