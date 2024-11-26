@@ -228,6 +228,7 @@ draw_bottom:
     j draw_bottom
 
 capsule_border:
+    li $t1, 0x1b1c1c
     sw $t1, -64($s3)
     sw $t1, -192($s3)
     sw $t1, -188($s3)
@@ -458,7 +459,7 @@ move $t6, $s3
 
 
 virus:
-beq $t4, $zero, store_virus_state
+beq $t4, $zero, repaint
     li $t1, 0
     li $t2, 4
     li $t3, 128
@@ -506,18 +507,18 @@ beq $t4, $zero, store_virus_state
     move $s4, $s3               # copy of origin that will be the same when it leaves the virus branch. will be used in game loop ***
     j virus
 
-store_virus_state:
-    la $s0, field
-    la $t0, virus_state
-    addi $s6, $s6, 1672
-paint_virus_state:
-    beq $s6, $s7, repaint
-    lw $s5, 0($s0)
-    sw $s5, 0($t0)
-    addi $s0, $s0, 4
-    addi $t0, $t0, 4
-    addi $s7, $s7, 1
-    j paint_virus_state
+# store_virus_state:
+    # la $s0, field
+    # la $t0, virus_state
+    # addi $s6, $s6, 1672
+# paint_virus_state:
+    # beq $s6, $s7, repaint
+    # lw $s5, 0($s0)
+    # sw $s5, 0($t0)
+    # addi $s0, $s0, 4
+    # addi $t0, $t0, 4
+    # addi $s7, $s7, 1
+    # j paint_virus_state
     
 # Assume the base address of the display is in $t0
 # Assume the base address of the field (game map) is in $s0
@@ -1059,29 +1060,28 @@ stack:
         
         continue_terminate:
         li $t1, 0       #background
-        beq $s6, $s7, vertical_stack
+        beq $s6, $s7, drop
         sw $t1, 0($s6)
         addi $s6, $s6, 128
         j continue_terminate
-        
-        
-    # drop:
-        # move $s6, $s1
-        # drop_logic:
-        # lw $t2, 0($s7)
-        # bne $t2, $t1, drop_down 
-        # addi $s7, $s7, 128
-        # j drop_logic
-        # drop_down:
-            # lw $s5, -128($s6)
-            # sw $t1, -128($s6)
+    
+    drop:
+        move $s6, $s1
+        drop_logic:
+        lw $t2, 0($s7)
+        bne $t2, $t1, drop_down 
+        addi $s7, $s7, 128
+        j drop_logic
+        drop_down:
+            lw $s5, -128($s6)
+            sw $t1, -128($s6)
                 
-            # beq $s5, $t1, continue_to_change
-            # sw $s5, -128($s7)
+            beq $s5, $t1, continue_to_change
+            sw $s5, -128($s7)
                 
-            # addi $s7, $s7, -128
-            # addi $s6, $s6, -128
-            # j drop_down
+            addi $s7, $s7, -128
+            addi $s6, $s6, -128
+            j drop_down
 
 horizontal_stack:
 la $t0, field       # Load base address for display
@@ -1143,30 +1143,49 @@ h_stack:
         
         h_continue_terminate:
         li $t1, 0       #background
-        beq $s6, $s7, horizontal_stack
+        beq $s6, $s7, h_absolute
         sw $t1, 0($s6)
         addi $s6, $s6, 4
         j h_continue_terminate
         
+    h_absolute:
+    li $t0, 0
+    
+    h_main_drop:
+    move $s6, $s1
+    move $s7, $s6
+    addi $s7, $s7, 128
+    
+    
+    h_drop:
+        li $t6, 4
         
-    # h_drop:
-        # move $s6, $s1
-        # h_drop_logic:
-        # lw $t2, 0($s7)
-        # bne $t2, $t1, h_drop_down 
-        # addi $s7, $s7, 128
-        # j h_drop_logic
-        # h_drop_down:
-            # lw $s5, -128($s6)
-            # sw $t1, -128($s6)
-                
-            # beq $s5, $t1, horizontal_stack
-            # sw $s5, -128($s7)
-                
-            # addi $s7, $s7, -128
-            # addi $s6, $s6, -128
-            # j h_drop_down
         
+        mult $t6, $t6, $t0
+        
+        add $s6, $s6, $t6
+        add $s7, $s7, $t6
+        beq $t0, $t2, horizontal_stack
+        addi $t0, $t0, 1
+        
+        h_drop_logic:
+        lw $t9, 0($s7)
+        bne $t9, $t1, h_drop_down 
+        addi $s7, $s7, 128
+        j h_drop_logic
+        h_drop_down:
+        
+            lw $s5, -128($s6)
+            sw $t1, -128($s6)
+                
+            beq $s5, $t1, h_main_drop
+            sw $s5, -128($s7)
+                
+            addi $s7, $s7, -128
+            addi $s6, $s6, -128
+            j h_drop_down
+
+
 
 move_on:
 
