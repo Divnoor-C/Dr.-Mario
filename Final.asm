@@ -65,8 +65,6 @@ VirusNumber_Hard:
 ##############################################################################
 field: 
     .space 16384  # Allocate space for a 32x32 array (128 bytes for words)
-virus_state:
-    .space 16384
 ##############################################################################
 # Code
 ##############################################################################
@@ -507,18 +505,6 @@ beq $t4, $zero, repaint
     move $s4, $s3               # copy of origin that will be the same when it leaves the virus branch. will be used in game loop ***
     j virus
 
-# store_virus_state:
-    # la $s0, field
-    # la $t0, virus_state
-    # addi $s6, $s6, 1672
-# paint_virus_state:
-    # beq $s6, $s7, repaint
-    # lw $s5, 0($s0)
-    # sw $s5, 0($t0)
-    # addi $s0, $s0, 4
-    # addi $t0, $t0, 4
-    # addi $s7, $s7, 1
-    # j paint_virus_state
     
 # Assume the base address of the display is in $t0
 # Assume the base address of the field (game map) is in $s0
