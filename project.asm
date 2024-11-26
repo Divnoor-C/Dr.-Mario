@@ -921,110 +921,110 @@ move_down_vertical_gravity:
     
            
 change_capsule:
-move $s5, $s3
-bne $t9, 0x09eb63, continue_to_change
-beq $t5, 0, vertical_special
-beq $t5, 1, horizontal_special
-j continue_to_change
+# move $s5, $s3
+# bne $t9, 0x09eb63, continue_to_change
+# beq $t5, 0, vertical_special
+# beq $t5, 1, horizontal_special
+# j continue_to_change
 
-vertical_special:
-lw $t7, -120($s3)
-beq $t7, 0xffffff, special_up
-sw $t5, -120($s3)
-addi $s3, $s3, 128
-j vertical_special
+# vertical_special:
+# lw $t7, -120($s3)
+# beq $t7, 0xffffff, special_up
+# sw $t5, -120($s3)
+# addi $s3, $s3, 128
+# j vertical_special
 
-special_up:
-lw $t7, -248($s5)
-beq $t7, $t5, continue_to_change
-sw $t5, -248($s5)
-addi $s5, $s5, -128
-j special_up
+# special_up:
+# lw $t7, -248($s5)
+# beq $t7, $t5, continue_to_change
+# sw $t5, -248($s5)
+# addi $s5, $s5, -128
+# j special_up
 
-horizontal_special:
-li $t5, 0
-lw $t7, 8($s3)
-beq $t7, 0xffffff, special_left
-sw $t5, 8($s3)
-addi $s3, $s3, 4
-j horizontal_special
-
-
-special_left:
-lw $t7, 4($s5)
-
-beq $t7, 0xffffff, continue_to_change
-sw $t5, 4($s5)
-addi $s5, $s5, -4
-j special_left
+# horizontal_special:
+# li $t5, 0
+# lw $t7, 8($s3)
+# beq $t7, 0xffffff, special_left
+# sw $t5, 8($s3)
+# addi $s3, $s3, 4
+# j horizontal_special
 
 
-continue_to_change:
+# special_left:
+# lw $t7, 4($s5)
 
-    la $t0, field        # Load base address for display
-    addi $t0, $t0, 780
+# beq $t7, 0xffffff, continue_to_change
+# sw $t5, 4($s5)
+# addi $s5, $s5, -4
+# j special_left
+
+
+# continue_to_change:
+
+    # la $t0, field        # Load base address for display
+    # addi $t0, $t0, 780
     
-    lw $a1, Box_Width              # Total width of the box
-    lw $a2, Box_Height             # Total height of the box
+    # lw $a1, Box_Width              # Total width of the box
+    # lw $a2, Box_Height             # Total height of the box
 
-vertical_stack:
-# Outer loop: Iterate over rows
-li $t7, 0                  # Column counter
-move $s0, $t0              # Temporary pointer for the current row
+# vertical_stack:
+# # Outer loop: Iterate over rows
+# li $t7, 0                  # Column counter
+# move $s0, $t0              # Temporary pointer for the current row
 
-outer_loop:
-    beq $t7, $a1, horizontal_stack # Exit if we've iterated through all columns
+# outer_loop:
+    # beq $t7, $a1, move_on # Exit if we've iterated through all columns
 
-    # Inner loop: Iterate over rows
-    li $t8, 0              # Row counter
-    move $s1, $s0          # Temporary pointer for the current row
+    # # Inner loop: Iterate over rows
+    # li $t8, 0              # Row counter
+    # move $s1, $s0          # Temporary pointer for the current row
     
-inner_loop:
-    beq $t8, $a2, next_column # Exit if we've iterated through all rows
-    lw $t4, 0($s1)
-    beq $t4, 0x0, continue
-    lw $t5, 128($s1)
-    bne $t4, $t5, continue
-    j stack
-    continue:
-    # Move to the next pixel (row)
-    addi $s1, $s1, 128       # Move pointer to the next word in memory
-    addi $t8, $t8, 1       # Increment row counter
-    j inner_loop           # Repeat for the next column
+# inner_loop:
+    # beq $t8, $a2, next_column # Exit if we've iterated through all rows
+    # lw $t4, 0($s1)
+    # beq $t4, 0x0, continue
+    # lw $t5, 128($s1)
+    # bne $t4, $t5, continue
+    # j stack
+    # continue:
+    # # Move to the next pixel (row)
+    # addi $s1, $s1, 128       # Move pointer to the next word in memory
+    # addi $t8, $t8, 1       # Increment row counter
+    # j inner_loop           # Repeat for the next column
 
-# Move to the next row
-next_column:
-    addi $s0, $s0, 4      # Move pointer to the next column
-    addi $t7, $t7, 1       # Increment column counter
-    j outer_loop           # Repeat for the next column
+# # Move to the next row
+# next_column:
+    # addi $s0, $s0, 4      # Move pointer to the next column
+    # addi $t7, $t7, 1       # Increment column counter
+    # j outer_loop           # Repeat for the next column
     
     
-stack:
-    move $s7, $s1       #starting position of stack
-    move $s6, $s1
-    addi $s7, $s7, 256
+# stack:
+    # move $s7, $s1       #starting position of stack
+    # move $s6, $s1
+    # addi $s7, $s7, 256
     
-    li $t2, 2
+    # li $t2, 2
     
-    inner_stack:
-        lw $t6, 0($s7)
-        bne $t6, $t4, terminate
+    # inner_stack:
+        # lw $t6, 0($s7)
+        # bne $t6, $t4, terminate
         
-        addi $s7, $s7, 128
-        addi $t2, $t2, 1
-        j inner_stack
+        # addi $s7, $s7, 128
+        # addi $t2, $t2, 1
+        # j inner_stack
     
     
-    terminate:
-        bgt $t2, 3, continue_terminate
-        j continue
+    # terminate:
+        # bgt $t2, 3, continue_terminate
+        # j continue
         
-        continue_terminate:
-        li $t1, 0       #background
-        beq $s6, $s7, continue_to_change
-        sw $t1, 0($s6)
-        addi $s6, $s6, 128
-        j continue_terminate
+        # continue_terminate:
+        # li $t1, 0       #background
+        # beq $s6, $s7, vertical_stack
+        # sw $t1, 0($s6)
+        # addi $s6, $s6, 128
+        # j continue_terminate
         
         
     # drop:
@@ -1048,6 +1048,9 @@ stack:
 horizontal_stack:
 la $t0, field       # Load base address for display
 addi $t0, $t0, 780
+
+lw $a1, Box_Width              # Total width of the box
+lw $a2, Box_Height             # Total height of the box
 
 # Outer loop: Iterate over rows
 li $t7, 0                  # Row counter
