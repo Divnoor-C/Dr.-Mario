@@ -936,21 +936,24 @@ j vertical_special
 
 special_up:
 lw $t7, -248($s5)
-beq $t7, $t5, move_on
+beq $t7, $t5, continue_to_change
 sw $t5, -248($s5)
 addi $s5, $s5, -128
 j special_up
 
 horizontal_special:
+li $t5, 0
 lw $t7, 8($s3)
 beq $t7, 0xffffff, special_left
 sw $t5, 8($s3)
 addi $s3, $s3, 4
 j horizontal_special
 
+
 special_left:
 lw $t7, 4($s5)
-beq $t7, 0xffffff, move_on
+
+beq $t7, 0xffffff, continue_to_change
 sw $t5, 4($s5)
 addi $s5, $s5, -4
 j special_left
@@ -1018,29 +1021,29 @@ stack:
         
         continue_terminate:
         li $t1, 0       #background
-        beq $s6, $s7, drop
+        beq $s6, $s7, continue_to_change
         sw $t1, 0($s6)
         addi $s6, $s6, 128
         j continue_terminate
         
         
-    drop:
-        move $s6, $s1
-        drop_logic:
-        lw $t2, 0($s7)
-        bne $t2, $t1, drop_down 
-        addi $s7, $s7, 128
-        j drop_logic
-        drop_down:
-            lw $s5, -128($s6)
-            sw $t1, -128($s6)
+    # drop:
+        # move $s6, $s1
+        # drop_logic:
+        # lw $t2, 0($s7)
+        # bne $t2, $t1, drop_down 
+        # addi $s7, $s7, 128
+        # j drop_logic
+        # drop_down:
+            # lw $s5, -128($s6)
+            # sw $t1, -128($s6)
                 
-            beq $s5, $t1, vertical_stack
-            sw $s5, -128($s7)
+            # beq $s5, $t1, continue_to_change
+            # sw $s5, -128($s7)
                 
-            addi $s7, $s7, -128
-            addi $s6, $s6, -128
-            j drop_down
+            # addi $s7, $s7, -128
+            # addi $s6, $s6, -128
+            # j drop_down
 
 horizontal_stack:
 la $t0, field       # Load base address for display
@@ -1100,7 +1103,7 @@ h_stack:
         
         h_continue_terminate:
         li $t1, 0       #background
-        beq $s6, $s7, move_on
+        beq $s6, $s7, horizontal_stack
         sw $t1, 0($s6)
         addi $s6, $s6, 4
         j h_continue_terminate
